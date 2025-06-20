@@ -1,0 +1,25 @@
+WELCOME.md
+
+Greeting for New Contributors
+
+
+Markdown
+
+
+# 👋 Welcome to XLAN!
+
+We're thrilled to have you here! 🎮
+
+**XLAN** is an open-source Azure-powered platform that makes it easy to organize compliant Xbox LAN parties and community gaming events. Whether you're here to contribute code, offer ideas, or improve the docs — you belong here.
+
+Start by checking out our:
+- [Contributing Guidelines](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Project Roadmap](README.md#roadmap)
+
+Let’s build something great — together. 💡
+
+— The XLAN Team
+
+
+

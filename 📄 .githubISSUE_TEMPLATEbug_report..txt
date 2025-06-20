@@ -1,0 +1,35 @@
+📄 .github/ISSUE_TEMPLATE/bug_report.md
+
+Markdown Here's a complete set of GitHub issue and pull request templates to complement your CONTRIBUTING.md and CODE_OF_CONDUCT.md
+
+---
+name: 🐞 Bug Report
+about: Report an issue or unexpected behavior in XLAN
+labels: bug
+---
+
+## 📋 Description
+
+Tell us what went wrong.
+
+**Expected Behavior:**
+What did you expect to happen?
+
+**Actual Behavior:**
+What happened instead?
+
+## 🔁 Steps to Reproduce
+
+1. Go to '...'
+2. Click on '....'
+3. See error
+
+## 🖥️ Environment
+
+- OS: [e.g. Windows 11, macOS Sonoma]
+- Browser / .NET Runtime:
+- XLAN Version / Branch:
+
+## 📎 Additional Context
+
+Screenshots, logs, or anything else helpful!

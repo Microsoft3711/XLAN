@@ -1,0 +1,48 @@
+🧾 azure-static-web-apps.yml — GitHub Actions Deployment Script
+
+Place this in .github/workflows/azure-static-web-apps.yml:
+
+Yaml
+
+
+name: Azure Static Web Apps CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Build Blazor app
+        run: |
+          cd client
+          dotnet publish -c Release -o ../build
+
+      - name: Deploy to Azure Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/build"
+          api_location: "api"
+          output_location: ""
+
+
+
+> 🔐 You'll need to create an Azure Static Web App in the portal and add the deployment token as a secret: AZURE_STATIC_WEB_APPS_API_TOKEN

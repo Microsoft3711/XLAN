@@ -1,0 +1,49 @@
+🧭 Step-by-Step Azure Portal Guide – XLAN Deployment
+🔹 1. Create Azure Resources
+Sign in at https://portal.azure.com
+
+Create a Resource Group:
+
+Name: xlan-rg
+
+Region: West Europe (or preferred)
+
+Create a Cosmos DB (NoSQL):
+
+Database: xlan-db
+
+Container: participants
+
+Partition Key: /eventId
+
+Create a Static Web App:
+
+Name: xlan-web
+
+Choose GitHub as deployment source
+
+App location: client
+
+API location: api
+
+> On successful creation, Azure will provide a deployment token — add it to your repo under AZURE_STATIC_WEB_APPS_API_TOKEN in GitHub Secrets.
+
+🔹 2. Setup GitHub Repository
+1. Push your XLAN codebase to GitHub
+
+2. Verify .github/workflows/azure-static-web-apps.yml exists
+
+3. Add the deployment token as a secret
+
+4. Push a commit — Azure will auto-deploy your app
+
+🔹 3. Test and Monitor
+Visit your Static Web App URL to view the Blazor frontend
+
+Test the API endpoint /api/event/register
+
+Go to Azure Portal > Cosmos DB to confirm entries appear in participants
+
+Monitor logs in Azure Functions > Log Stream
+
+View GitHub Actions for real-time CI/CD status

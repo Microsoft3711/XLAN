@@ -1,0 +1,45 @@
+GitHub Release Stub for your XLAN Project
+
+
+📦 GitHub Release: v1.0.0-beta
+Tag: v1.0.0-beta Release title: XLAN Admin Dashboard – Public Beta Target branch: main Pre-release: ✅ Mark as pre-release (recommended for initial testing)
+
+✨ What's Included
+🎮 XLAN.Client/ (Blazor WebAssembly Frontend) 🧠 Admin Dashboard with:
+
+Live participant tracking
+
+Time-slot extensions
+
+Device connection view with online/offline status
+
+Game Pass license status module
+
+SignalR-based real-time updates
+
+Azure-ready frontend styling (Dark Mode)
+
+📡 API Endpoints:
+
+/api/participants
+
+/api/session/extend
+
+/api/devices
+
+/api/license/status
+
+/api/broadcast/refresh (SignalR trigger)
+
+📁 Assets
+Attach the following ZIP to the release:
+
+XLAN.Client_v1.0.0-beta.zip (Blazor Frontend folder)
+
+XLAN.API_Functions_v1.0.0-beta.zip (Azure Functions folder if applicable)
+
+🔧 Deployment Instructions
+> See DEPLOYMENT.md in the root of the repo for full Azure CI/CD setup using GitHub Actions, CLI, or Azure Portal.
+
+📢 Feedback
+Found an issue or want to contribute? Please open an issue or pull request! Let’s improve the future of Xbox LAN events — one session at a time 🎮💙

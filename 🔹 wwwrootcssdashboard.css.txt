@@ -1,0 +1,91 @@
+🔹 wwwroot/css/dashboard.css
+css
+
+
+/* Styled dashboard layout */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #111827;
+  color: #f9fafb;
+  margin: 0;
+  padding: 1rem;
+}
+h1, h3 { color: #22d3ee; }
+/* ... full CSS from earlier response ... */
+
+
+
+
+🔹 Pages/Dashboard.razor
+Razor
+
+
+@page "/dashboard"
+
+<h1>XLAN Admin Dashboard</h1>
+<License />
+<Participants />
+<Devices />
+
+<button @onclick="TriggerUpdate">🔄 Force Refresh</button>
+
+@code {
+    [Inject] public ApiClient Api { get; set; }
+
+    private async Task TriggerUpdate()
+    {
+        await Api.ForceDashboardRefreshAsync();
+    }
+}
+
+
+
+
+🔹 Pages/Participants.razor
+Interactive table with session time and action button (as shared in earlier steps)
+
+🔹 Pages/Devices.razor
+Styled with Online/Offline indicators (as shared in earlier steps)
+
+🔹 Pages/License.razor
+Live license check status (from XboxHost@xlan.local example)
+
+🔹 Services/ApiClient.cs
+All async HTTP calls wrapped here
+
+🔹 Services/DashboardHubClient.cs
+SignalR client: connects, listens for "refresh" messages
+
+🔹 Shared/*.cs Models
+You can reuse these from your /shared folder from the API project or copy here if using WASM-only build.
+
+🔹 Program.cs
+csharp
+
+
+builder.Services.AddScoped<ApiClient>();
+builder.Services.AddSingleton<DashboardHubClient>();
+builder.RootComponents.Add<App>("#app");
+
+
+
+
+🔹 App.razor
+Razor
+
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" />
+        </Found>
+    </Router>
+</CascadingAuthenticationState>
+
+
+
+
+Once this structure is in place, you can zip the XLAN.Client/ directory and deploy it directly to Azure Static Web Apps, GitHub Pages, or host it in IIS/Kestrel.
+
+
+

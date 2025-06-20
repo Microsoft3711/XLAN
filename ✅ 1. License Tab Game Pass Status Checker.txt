@@ -1,0 +1,78 @@
+✅ 1. License Tab: Game Pass Status Checker (Mocked for Now)
+We'll simulate a future Xbox API connection, allowing organizers to verify if the host account has a valid Game Pass Ultimate license.
+
+🔧 Backend – GET /api/license/status (simulated)
+Create LicenseStatus.cs:
+
+csharp
+
+
+
+[FunctionName("CheckLicenseStatus")]
+public static async Task<IActionResult> Run(
+    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "license/status")] HttpRequest req,
+    ILogger log)
+{
+    var license = new {
+        Account = "XboxHost@xlan.local",
+        GamePassValid = true,
+        ExpiresOn = DateTime.UtcNow.AddDays(23)
+    };
+    return new OkObjectResult(license);
+}
+
+
+
+
+💻 Frontend – License.razor
+Razor
+
+
+
+@inject ApiClient Api
+<h3>🎟️ License Status</h3>
+
+@if (status == null)
+{
+    <p><em>Checking license...</em></p>
+}
+else if (status.GamePassValid)
+{
+    <p>✅ Valid Game Pass Ultimate</p>
+    <p>Account: <strong>@status.Account</strong></p>
+    <p>Expires on: @status.ExpiresOn.ToShortDateString()</p>
+}
+else
+{
+    <p style="color:red;">❌ No valid license detected.</p>
+}
+
+@code {
+    LicenseStatus status;
+
+    protected override async Task OnInitializedAsync()
+    {
+        status = await Api.GetLicenseStatusAsync();
+    }
+
+    public class LicenseStatus {
+        public string Account { get; set; }
+        public bool GamePassValid { get; set; }
+        public DateTime ExpiresOn { get; set; }
+    }
+}
+
+
+
+
+In ApiClient.cs add:
+
+csharp
+
+
+public async Task<LicenseStatus> GetLicenseStatusAsync()
+    => await _http.GetFromJsonAsync<LicenseStatus>("api/license/status");
+
+
+
+

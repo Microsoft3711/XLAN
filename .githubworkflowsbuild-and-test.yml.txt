@@ -1,0 +1,45 @@
+.github/workflows/build-and-test.yml
+
+
+⚙️ Basic GitHub Actions Workflow – .github/workflows/build-and-test.yml
+Here’s a simple CI pipeline to automatically build and test your XLAN Azure Function and Blazor frontend with .NET 7:
+
+
+Yaml
+
+
+name: 🔧 Build & Test (.NET)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build all projects
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run tests (optional)
+      run: dotnet test --no-build --verbosity normal
+
+
+
+
+💡 You can expand this later to include deploy scripts, code coverage, or even static web app publishing from the frontend.

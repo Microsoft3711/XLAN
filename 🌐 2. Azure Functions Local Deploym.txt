@@ -1,0 +1,30 @@
+🌐 2. Azure Functions Local Deployment Template
+To deploy manually via CLI (as a fallback or alternative to GitHub Actions):
+
+Bash
+
+
+
+# Log in to your Azure account
+az login
+
+# Create a resource group
+az group create --name xlan-rg --location westeurope
+
+# Create a storage account (required for Azure Functions)
+az storage account create --name xlanstorage --location westeurope --resource-group xlan-rg --sku Standard_LRS
+
+# Create a Function App
+az functionapp create \
+  --resource-group xlan-rg \
+  --consumption-plan-location westeurope \
+  --runtime dotnet \
+  --functions-version 4 \
+  --name xlan-api-func \
+  --storage-account xlanstorage
+
+# Deploy your Azure Function
+func azure functionapp publish xlan-api-func
+
+
+

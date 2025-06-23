@@ -1,0 +1,21 @@
+📄 .github/ISSUE_TEMPLATE/feature_request.md
+
+Markdown
+
+---
+name: ✨ Feature Request
+about: Suggest a new idea for XLAN
+labels: enhancement
+---
+
+## 🚀 Feature Idea
+
+Describe your idea clearly. What problem does it solve?
+
+## 💡 Suggested Solution or UI
+
+Feel free to sketch out your idea or describe it in terms of UI/UX.
+
+## 💬 Additional Notes
+
+Any related issues, references, or inspiration from other tools?

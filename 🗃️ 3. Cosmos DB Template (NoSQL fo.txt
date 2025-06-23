@@ -1,0 +1,45 @@
+🗃️ 3. Cosmos DB Template (NoSQL for Participants)
+Option 1: Portal
+Go to the Azure Portal, create a Cosmos DB for NoSQL, and create a database like:
+
+Database ID: xlan-db
+
+Container ID: participants
+
+Partition Key: /eventId
+
+Option 2: CLI
+
+
+Bash
+
+
+
+az cosmosdb create --name xlan-db --resource-group xlan-rg --kind GlobalDocumentDB
+az cosmosdb sql database create --account-name xlan-db --resource-group xlan-rg --name xlan-db
+az cosmosdb sql container create \
+  --account-name xlan-db \
+  --database-name xlan-db \
+  --name participants \
+  --partition-key-path "/eventId"
+
+
+
+
+
+
+🎯 Optional: Static Routing (for Blazor)
+If you want to enable client-side routes to work properly on refresh, add this to the root:
+
+staticwebapp.config.json
+
+Json
+
+
+
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*"]
+  }
+}

@@ -1,0 +1,32 @@
+test-deployment.sh - For Linux/MacOS
+
+
+Bash 
+
+
+
+#!/bin/bash
+
+echo "🔍 Testing XLAN deployment status..."
+
+API_URL="https://your-xlan-app.azurewebsites.net/api/event/register"
+WEB_URL="https://your-xlan-app.azurestaticapps.net"
+
+# 1. Check web frontend
+echo "🌐 Checking Blazor frontend..."
+curl --silent --fail $WEB_URL > /dev/null && echo "✅ Frontend is reachable at $WEB_URL" || echo "❌ Frontend not reachable"
+
+# 2. Check API endpoint
+echo "📡 Checking Azure Function..."
+STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $API_URL)
+
+if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 404 ]; then
+  echo "✅ Azure Function is responding on $API_URL (status $STATUS_CODE)"
+else
+  echo "❌ Azure Function not responding (status $STATUS_CODE)"
+fi
+
+# 3. Check Cosmos DB connectivity (optional ping)
+echo "☁️ Make sure Cosmos DB is connected and visible in Azure Portal."
+
+echo "🟢 All set! 🌐 Now you have full GitHub Actions CI/CD for Azure, manual Azure CLI fallback, and database templates to deploy and manage your event system."

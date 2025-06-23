@@ -1,0 +1,75 @@
+CONTRIBUTING.md
+
+# 🤝 Contributing to XLAN
+
+Thanks for your interest in contributing to **XLAN** — the smart Azure-based toolkit for hosting licensed Xbox LAN events. Whether you're fixing bugs, building new features, improving docs, or just exploring, we’re excited to have you here!
+
+---
+
+## 🚀 Quick Start
+
+1. **Fork this repository**
+2. Clone your fork to your machine:
+   ```bash
+   git clone https://github.com/your-username/xlan.git
+   cd xlan
+
+
+
+3,Set up the environment:
+
+Install .NET 7 SDK
+
+Configure local.settings.json for Azure Functions
+
+Link to your Azure resources (Cosmos DB, Entra ID, etc.)
+
+4.Create a new branch:
+
+bash
+
+git checkout -b your-feature-name
+
+5.Make your changes, commit, and push:
+
+bash
+
+git push origin your-feature-name
+
+6. Submit a pull request to the main branch
+
+
+
+🛠 What You Can Work On
+💡 New features or UI enhancements (Blazor or React)
+
+🪲 Bug fixes in Azure Functions or data handling
+
+📚 Improving documentation and developer onboarding
+
+🌐 Internationalization & localization
+
+🧪 Writing tests and adding test coverage
+
+📋 Code Guidelines
+Follow standard .NET naming conventions
+
+Use clean, readable code and leave helpful comments
+
+One feature or fix per branch
+
+Pull requests should be reviewed by at least one maintainer before merging
+
+📣 Community Values
+We strive to keep this project inclusive and respectful. By participating, you agree to follow our Code of Conduct (coming soon). Be kind, constructive, and helpful!
+
+🙏 Acknowledgement
+Your contributions make XLAN better — thank you! We’ll do our best to review your input promptly and keep you in the loop.
+
+Let’s build a better LAN experience — together.
+
+
+
+
+Want me to generate a `CODE_OF_CONDUCT.md` next or set up GitHub issue templates? Just give me the word — I’m ready to help power up your repo ⚡🎮🛠️  
+And if you're publishing this on GitHub soon, I can help write your project description and tags, too!

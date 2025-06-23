@@ -1,0 +1,23 @@
+📁 XLAN.Client/ – Frontend Folder Structure
+
+
+XLAN.Client/
+├── wwwroot/
+│   └── css/
+│       └── dashboard.css
+├── Pages/
+│   ├── Dashboard.razor
+│   ├── Participants.razor
+│   ├── Devices.razor
+│   └── License.razor
+├── Services/
+│   ├── ApiClient.cs
+│   └── DashboardHubClient.cs
+├── Shared/
+│   └── EventParticipant.cs
+│   └── XboxDevice.cs
+│   └── LicenseStatus.cs
+├── Program.cs
+├── App.razor
+├── XLAN.Client.csproj
+└── index.html

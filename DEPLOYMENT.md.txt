@@ -1,0 +1,814 @@
+DEPLOYMENT.md
+
+
+
+🚀 XLAN Deployment Guide
+This guide will walk you through deploying the XLAN platform — including the Blazor frontend, Azure Functions backend, and Cosmos DB — using the Azure Portal, Azure CLI (PowerShell), and GitHub Actions CI/CD.
+
+🧭 Option 1: Deployment via Azure Portal (Manual)
+1. Create a Resource Group
+Portal: https://portal.azure.com
+
+Go to Resource groups > Create
+
+Name: xlan-rg
+
+Region: e.g. West Europe
+
+2. Provision Cosmos DB (NoSQL)
+Create a resource → Azure Cosmos DB for NoSQL
+
+Account name: xlan-cosmosdb
+
+Database name: xlan-db
+
+Container name: participants
+
+Partition Key: /eventId
+
+3. Create a Static Web App
+Create new → Static Web App (Standard)
+
+Name: xlan-web
+
+Link your GitHub repository
+
+Set build settings:
+
+App location: client
+
+API location: api
+
+Azure will provide a deployment token — copy this and add it to your repo secrets as AZURE_STATIC_WEB_APPS_API_TOKEN.
+
+4. Deploy Automatically with GitHub Actions
+Ensure your repo contains:
+
+azure-static-web-apps.yml in .github/workflows/
+
+Project folder structure:
+
+/client   → Blazor WebAssembly
+/api      → Azure Functions
+
+
+Push your changes. GitHub Actions will handle the rest 🚀
+
+
+🛠 Option 2: Manual Deployment via PowerShell (Windows)
+Use this script locally to deploy your backend and database:
+
+
+
+PowerShell
+
+
+
+# Login
+az login
+
+# Variables
+$resourceGroup = "xlan-rg"
+$location = "westeurope"
+$storageName = "xlanstorage2025"
+$functionApp = "xlan-api-func"
+$cosmosName = "xlan-cosmosdb"
+$databaseName = "xlan-db"
+$containerName = "participants"
+$partitionKey = "/eventId"
+
+# Create resources
+az group create --name $resourceGroup --location $location
+az storage account create --name $storageName --resource-group $resourceGroup --location $location --sku Standard_LRS
+az functionapp create --resource-group $resourceGroup --consumption-plan-location $location --runtime dotnet --functions-version 4 --name $functionApp --storage-account $storageName
+func azure functionapp publish $functionApp
+
+# Cosmos DB
+az cosmosdb create --name $cosmosName --resource-group $resourceGroup --kind GlobalDocumentDB
+az cosmosdb sql database create --account-name $cosmosName --name $databaseName --resource-group $resourceGroup
+az cosmosdb sql container create --account-name $cosmosName --database-name $databaseName --name $containerName --partition-key-path $partitionKey --resource-group $resourceGroup
+
+
+
+
+
+🧪 Validate Your Deployment (Optional Test Script)
+Once deployed, run this to verify:
+
+PowerShell
+
+
+
+$webUrl = "https://your-xlan-site.azurestaticapps.net"
+$apiUrl = "https://your-func-app.azurewebsites.net/api/event/register"
+
+Write-Host "`n🌐 Checking frontend..." -ForegroundColor Cyan
+Invoke-WebRequest -Uri $webUrl -UseBasicParsing | Out-Null
+Write-Host "✅ Frontend reachable at $webUrl" -ForegroundColor Green
+
+Write-Host "`n⚙️ Checking API..." -ForegroundColor Cyan
+$response = Invoke-WebRequest -Uri $apiUrl -Method GET -SkipHttpErrorCheck
+Write-Host "✅ API responded with status $($response.StatusCode)" -ForegroundColor Green
+
+Write-Host "`n🟢 All set! 🌐 Now you have full GitHub Actions CI/CD for Azure, manual Azure CLI fallback, and database templates to deploy and manage your event system." -ForegroundColor Green
+
+
+
+
+
+
+For the XLAN Admin Dashboard, the goal is to give event organizers a real-time, intuitive interface to:
+
+📋 View active participants and their game status
+
+🕹️ Track connected Xbox devices
+
+⏲️ Monitor time slots and remaining session time
+
+📡 Visualize license status and server health
+
+💻 1. Core Components (UI)
+We’ll use Blazor (Server or WASM) or React with these modules:
+
+DashboardHome.razor / Dashboard.jsx
+
+  Welcomes organizer, fetches data from API
+
+ActiveParticipants
+
+  Shows participant name, gamer tag, event ID, join time, time used
+
+ConnectedDevices
+
+  Lists Xbox device IDs/IPs, linked users, current game
+
+LicenseStatus
+
+  Displays Game Pass Ultimate validity, license token used
+
+AlertsPanel
+
+  Notifications like time-expiry warnings, device disconnects
+
+
+⚙️ 2. Backend API Endpoints (Azure Functions)
+Here’s a simplified set of endpoints for your Function app:
+
+
+Http
+
+
+GET  /api/participants         → list all current attendees
+GET  /api/devices              → list connected Xbox consoles
+POST /api/session/extend       → extend time slot for a user
+POST /api/device/link          → associate a device with user
+GET  /api/license/status       → check license validity
+
+
+
+Each would securely pull from your Cosmos DB and/or Xbox APIs.
+
+
+
+📊 3. Data Model Enhancements
+Extend your EventParticipant class with session tracking:
+
+Csharp
+
+
+
+public class EventParticipant {
+    public string Id { get; set; }
+    public string GamerTag { get; set; }
+    public string EventId { get; set; }
+    public DateTime JoinTime { get; set; }
+    public int SessionMinutes { get; set; }
+    public bool IsActive { get; set; }
+}
+
+
+
+
+
+🧪 4. Live Data with SignalR or polling
+Add a SignalR hub (DashboardHub) to push real-time updates to the dashboard when:
+
+A participant joins/leaves
+
+A console connects/disconnects
+
+A time slot expires
+
+Optional fallback: poll every 15–30 seconds via scheduled API calls.
+
+🛡️ 5. Authentication & Roles
+Organizers sign in via Microsoft Entra ID
+
+Assign a role claim like "role": "organizer" in the ID token
+
+Restrict access to dashboard routes based on role claim
+
+
+
+
+
+
+
+let’s begin building the XLAN backend foundation! This backend will live in your Azure Functions project (in the /api folder), and it will expose the key endpoints to support your Admin Dashboard. Below is a modular, scalable starting point.
+
+
+⚙️ Backend APIs for XLAN Admin Dashboard
+We’ll implement these core endpoints:
+
+1. GET /api/participants – List active users
+
+2. GET /api/devices – List connected Xbox devices (mocked initially)
+
+3. POST /api/session/extend – Extend a participant’s session
+
+4. GET /api/license/status – (future Xbox API integration)
+
+
+🧱 1. Data Model – /shared/EventParticipant.cs
+
+
+Csharp
+
+
+
+public class EventParticipant
+{
+    public string Id { get; set; }              // GUID
+    public string GamerTag { get; set; }
+    public string EventId { get; set; }
+    public DateTime JoinTime { get; set; }
+    public int SessionMinutes { get; set; }     // Total allowed time
+    public bool IsActive { get; set; }
+    public string DeviceId { get; set; }        // Xbox device (optional)
+}
+
+
+
+📡 2. GET /api/participants
+
+
+Csharp
+
+
+
+[FunctionName("GetParticipants")]
+public static async Task<IActionResult> Run(
+    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "participants")] HttpRequest req,
+    ILogger log)
+{
+    var client = new CosmosClient(Environment.GetEnvironmentVariable("CosmosDB"));
+    var container = client.GetContainer("xlan-db", "participants");
+
+    var query = new QueryDefinition("SELECT * FROM c WHERE c.IsActive = true");
+    var feed = container.GetItemQueryIterator<EventParticipant>(query);
+
+    List<EventParticipant> results = new();
+    while (feed.HasMoreResults)
+        results.AddRange(await feed.ReadNextAsync());
+
+    return new OkObjectResult(results);
+}
+
+
+
+
+🔄 3. POST /api/session/extend – Extend user time
+
+
+Csharp
+
+
+
+public class ExtendRequest {
+    public string ParticipantId { get; set; }
+    public int ExtraMinutes { get; set; }
+}
+
+[FunctionName("ExtendSession")]
+public static async Task<IActionResult> Run(
+    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "session/extend")] HttpRequest req,
+    ILogger log)
+{
+    var body = await new StreamReader(req.Body).ReadToEndAsync();
+    var input = JsonConvert.DeserializeObject<ExtendRequest>(body);
+
+    var client = new CosmosClient(Environment.GetEnvironmentVariable("CosmosDB"));
+    var container = client.GetContainer("xlan-db", "participants");
+
+    var response = await container.ReadItemAsync<EventParticipant>(input.ParticipantId, new PartitionKey("your-event-id"));
+    var participant = response.Resource;
+
+    participant.SessionMinutes += input.ExtraMinutes;
+
+    await container.UpsertItemAsync(participant, new PartitionKey("your-event-id"));
+    return new OkObjectResult($"Extended session by {input.ExtraMinutes} minutes.");
+}
+
+
+
+
+🕹️ 4. GET /api/devices – Temporary mock endpoint
+
+
+Csharp
+
+
+
+public class XboxDevice {
+    public string DeviceId { get; set; }
+    public string GamerTagLinked { get; set; }
+    public string IP { get; set; }
+    public bool Online { get; set; }
+}
+
+[FunctionName("GetDevices")]
+public static async Task<IActionResult> Run(
+    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "devices")] HttpRequest req,
+    ILogger log)
+{
+    var devices = new List<XboxDevice>
+    {
+        new() { DeviceId = "XBOX123", GamerTagLinked = "PlayerOne", IP = "192.168.1.42", Online = true },
+        new() { DeviceId = "XBOX456", GamerTagLinked = "None", IP = "192.168.1.43", Online = false }
+    };
+
+    return new OkObjectResult(devices);
+}
+
+
+
+
+let’s make sure your Azure Functions backend works smoothly with the proper configuration
+
+
+
+
+⚙️ host.json – Azure Functions Configuration for XLAN
+This file sits at the root of your /api folder and configures global behaviors for all your functions. Here's a clean, functional version tailored to your XLAN admin dashboard endpoints:
+
+
+Json
+
+
+
+{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "maxTelemetryItemsPerSecond": 5
+      }
+    },
+    "logLevel": {
+      "default": "Information",
+      "Function": "Information"
+    }
+  },
+  "extensions": {
+    "http": {
+      "routePrefix": "api"
+    }
+  }
+}
+
+
+
+
+✅ Key Points:
+"version": "2.0" is required for all Functions v3 and v4.
+
+"routePrefix": "api" ensures routes like api/participants map cleanly.
+
+Application Insights sampling helps you monitor events without flooding logs — great for live dashboards.
+
+If you're using CORS (for your Blazor frontend hosted separately), configure that under your Azure App Settings or via local development proxy.
+
+
+Your backend is now clean, scalable, and observability-ready. Next stop: the frontend where the real-time dashboard magic happens ✨🎛️🧠
+
+
+
+Let’s build the UI that connects all of this
+
+Fantastic! Let’s bring the XLAN dashboard to life with a clean, functional frontend built using Blazor WebAssembly.
+This UI will connect directly to your backend APIs and give event organizers full control in real time.
+
+
+
+🎛️ XLAN Admin Dashboard – Blazor Frontend
+📁 Recommended Folder Structure (/client)
+
+
+
+/client
+├── /Pages
+│   ├── Dashboard.razor
+│   ├── Participants.razor
+│   ├── Devices.razor
+│   └── License.razor
+├── /Services
+│   └── ApiClient.cs
+├── App.razor
+└── Program.cs
+
+
+
+💻 1. Dashboard.razor (Main UI Panel)
+Razor
+
+
+@page "/dashboard"
+<h1>XLAN Admin Dashboard</h1>
+
+<Participants />
+<Devices />
+<License />
+
+@code {
+    // You could add stateful logic here if needed
+}
+
+
+
+
+👥 2. Participants.razor
+Razor
+
+
+
+
+@inject ApiClient Api
+<h3>👤 Active Participants</h3>
+
+@if (participants == null)
+{
+    <p><em>Loading participants...</em></p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr><th>Gamertag</th><th>Join Time</th><th>Session (min)</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var p in participants)
+            {
+                <tr>
+                    <td>@p.GamerTag</td>
+                    <td>@p.JoinTime.ToLocalTime().ToShortTimeString()</td>
+                    <td>@p.SessionMinutes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<EventParticipant> participants;
+
+    protected override async Task OnInitializedAsync()
+    {
+        participants = await Api.GetParticipantsAsync();
+    }
+}
+
+
+
+
+🧠 3. ApiClient.cs (Service Layer)
+csharp
+
+
+
+
+public class ApiClient
+{
+    private readonly HttpClient _http;
+    public ApiClient(HttpClient http) => _http = http;
+
+    public async Task<List<EventParticipant>> GetParticipantsAsync()
+        => await _http.GetFromJsonAsync<List<EventParticipant>>("api/participants");
+
+    public async Task<List<XboxDevice>> GetDevicesAsync()
+        => await _http.GetFromJsonAsync<List<XboxDevice>>("api/devices");
+
+    public async Task<string> ExtendSessionAsync(string id, int minutes)
+    {
+        var body = new { participantId = id, extraMinutes = minutes };
+        var res = await _http.PostAsJsonAsync("api/session/extend", body);
+        return await res.Content.ReadAsStringAsync();
+    }
+}
+
+
+
+
+🧩 4. Program.cs – Register services
+csharp
+
+
+
+builder.Services.AddScoped<ApiClient>();
+
+
+
+INFO: You can expand with buttons to trigger ExtendSession, highlight devices by connection status, and later integrate SignalR for push updates.
+
+
+
+
+Let's power up the dashboard — with sleek styling and interactive features so organizers can actually run their event from the frontend! Here's how we’ll do it:
+
+🎨 Style the Dashboard
+We’ll use basic CSS with support for Dark Mode, clean fonts, and mobile-friendly layout. Create a new file:
+
+✅ wwwroot/css/dashboard.css
+css
+
+
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: #111827;
+  color: #f9fafb;
+  margin: 0;
+  padding: 1rem;
+}
+
+h1, h3 {
+  color: #22d3ee;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  background-color: #1f2937;
+  border-radius: 6px;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #374151;
+}
+
+th {
+  background-color: #2563eb;
+  color: white;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #3b82f6;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
+
+
+
+
+🔗 Link CSS in index.html
+html
+
+
+<link href="css/dashboard.css" rel="stylesheet" />
+
+
+
+⚡ Add Button to Extend Time
+In Participants.razor, we’ll add a button next to each user and wire it to ApiClient.ExtendSessionAsync.
+
+✅ Updated Participants.razor (with action)
+Razor
+
+
+
+<h3>👤 Active Participants</h3>
+
+@if (participants == null)
+{
+    <p><em>Loading participants...</em></p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Gamertag</th>
+                <th>Join Time</th>
+                <th>Session</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in participants)
+            {
+                <tr>
+                    <td>@p.GamerTag</td>
+                    <td>@p.JoinTime.ToLocalTime().ToShortTimeString()</td>
+                    <td>@p.SessionMinutes min</td>
+                    <td>
+                        <button @onclick="@(() => ExtendTime(p.Id))">+15 min</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<p>@status</p>
+
+@code {
+    private List<EventParticipant> participants;
+    private string status;
+
+    protected override async Task OnInitializedAsync()
+    {
+        participants = await Api.GetParticipantsAsync();
+    }
+
+    private async Task ExtendTime(string id)
+    {
+        status = "Processing...";
+        var response = await Api.ExtendSessionAsync(id, 15);
+        status = response;
+        participants = await Api.GetParticipantsAsync(); // Refresh list
+    }
+}
+
+
+
+✅ Now your dashboard is functional and styled: organizers can visually see participants, click to extend time, and get live feedback.
+
+
+
+
+let’s complete the ultimate XLAN Dashboard experience by styling the Devices panel and integrating real-time updates via SignalR so everything updates live without page refresh. 🎮⚡
+
+🎨 Styled Devices Panel with Status Indicators
+✅ Devices.razor
+razor
+
+
+
+@inject ApiClient Api
+
+<h3>🕹️ Connected Xbox Devices</h3>
+
+@if (devices == null)
+{
+    <p><em>Loading devices...</em></p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr><th>Device ID</th><th>Gamertag</th><th>IP Address</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var d in devices)
+            {
+                <tr>
+                    <td>@d.DeviceId</td>
+                    <td>@(string.IsNullOrEmpty(d.GamerTagLinked) ? "Unlinked" : d.GamerTagLinked)</td>
+                    <td>@d.IP</td>
+                    <td>
+                        @if (d.Online)
+                        {
+                            <span style="color:limegreen;">🟢 Online</span>
+                        }
+                        else
+                        {
+                            <span style="color:crimson;">🔴 Offline</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<XboxDevice> devices;
+
+    protected override async Task OnInitializedAsync()
+    {
+        devices = await Api.GetDevicesAsync();
+    }
+}
+
+
+
+
+📡 SignalR Live Updates (Backend & Frontend)
+🧩 1. Add SignalR Backend Endpoint
+Create /api/signalr/negotiate.cs:
+
+csharp
+
+
+
+[FunctionName("negotiate")]
+public static IActionResult Run(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req,
+    [SignalRConnectionInfo(HubName = "dashboardHub")] SignalRConnectionInfo connectionInfo)
+    => new OkObjectResult(connectionInfo);
+
+
+
+Configure SignalR in local.settings.json:
+
+json
+
+
+
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureSignalRConnectionString": "Endpoint=...;AccessKey=...;Version=1.0;",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+  }
+}
+
+
+
+> Note: You must enable Azure SignalR Service via the Portal and link it to your Function App.
+
+🎛️ 2. Update Frontend with SignalR Client
+In Program.cs:
+
+csharp
+
+
+
+builder.Services.AddSingleton<DashboardHubClient>();
+
+
+
+Create DashboardHubClient.cs:
+Csharp
+
+
+
+using Microsoft.AspNetCore.SignalR.Client;
+
+public class DashboardHubClient
+{
+    private HubConnection _hub;
+
+    public event Action OnChange;
+
+    public async Task ConnectAsync()
+    {
+        _hub = new HubConnectionBuilder()
+            .WithUrl("https://your-app-url.azurewebsites.net/api")
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hub.On("refresh", () => OnChange?.Invoke());
+
+        await _hub.StartAsync();
+    }
+}
+
+
+
+
+Then in Participants.razor:
+
+Razor
+
+
+
+@inject DashboardHubClient Hub
+
+protected override async Task OnInitializedAsync()
+{
+    participants = await Api.GetParticipantsAsync();
+    await Hub.ConnectAsync();
+    Hub.OnChange += async () =>
+    {
+        participants = await Api.GetParticipantsAsync();
+        StateHasChanged();
+    };
+}
+
+
+
+> You can now trigger .SendAsync("refresh") from backend (e.g. when someone joins or extends a session) and the UI updates automatically!
+

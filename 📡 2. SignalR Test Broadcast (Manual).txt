@@ -1,0 +1,51 @@
+📡 2. SignalR Test Broadcast (Manual Trigger for Now)
+To test live updates, add a button in your dashboard to simulate a change event.
+
+✅ Backend – POST /api/pinghub.cs
+csharp
+
+
+[FunctionName("PingHub")]
+public static async Task<IActionResult> Run(
+    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "broadcast/refresh")] HttpRequest req,
+    [SignalR(HubName = "dashboardHub")] IAsyncCollector<SignalRMessage> signalRMessages)
+{
+    await signalRMessages.AddAsync(new SignalRMessage {
+        Target = "refresh",
+        Arguments = new[] { "dashboard update" }
+    });
+
+    return new OkResult();
+}
+
+
+
+
+🕹️ Frontend Trigger (e.g. Dashboard.razor)
+Razor
+
+
+<button @onclick="TriggerUpdate">🔄 Force Refresh (Test)</button>
+
+@code {
+    private async Task TriggerUpdate()
+    {
+        await Api.ForceDashboardRefreshAsync();
+    }
+}
+
+
+
+
+In ApiClient.cs:
+Csharp
+
+
+public async Task ForceDashboardRefreshAsync()
+    => await _http.PostAsync("api/broadcast/refresh", null);
+
+
+
+
+
+INFO: And there it is — a fully styled, real-time, interactive, admin-friendly XLAN dashboard with participant control, device monitoring, license checks, and SignalR-powered live updates.

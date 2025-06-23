@@ -1,0 +1,51 @@
+CHANGELOG.md
+
+CHANGELOG.md for the XLAN project — starting with the initial public release:
+
+markdown
+
+
+# 📜 Changelog – XLAN
+
+All notable changes to this project will be documented in this file.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)  
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.0.0-beta] – 2025-06-19
+
+🎮 First public beta release of XLAN Admin Dashboard.
+
+### ✨ Added
+- Blazor WebAssembly Admin UI with participants, devices, and license tabs
+- API endpoints for:
+  - `GET /api/participants`
+  - `POST /api/session/extend`
+  - `GET /api/devices` (mocked)
+  - `GET /api/license/status` (mocked)
+  - `POST /api/broadcast/refresh` (SignalR)
+- Real-time updates using Azure SignalR Service and Blazor state bindings
+- Styled responsive dashboard with dark theme (`dashboard.css`)
+- PowerShell CLI deployment script for Windows
+- GitHub Actions CI/CD template for Azure Static Web Apps
+- Project documentation:
+  - `README.md`
+  - `CONTRIBUTING.md`
+  - `CODE_OF_CONDUCT.md`
+  - `DEPLOYMENT.md`
+
+### ⚠️ Notes
+- Xbox license validation uses mock data for now. Future versions will integrate the Xbox Live API.
+- SignalR notifications work locally and with Azure SignalR Service enabled.
+
+---
+
+## [Unreleased]
+
+✨ Planned:
+- Xbox authentication for host license verification  
+- Participant device binding (via MAC/IP association)  
+- Admin metrics dashboard (playtime stats, license usage)  
+- Automatic session expiration and queue rotation  
